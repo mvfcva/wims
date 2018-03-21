@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% include 'header-map.html' %}
+
+<style>
+
+.leaflet-div-icon  { text-align:  center; border: 1px solid #666; background: #fff; }
+.leaflet-div-icon- { text-align:  center; border: 1px solid #666; background: #fff; }
+
+{% for collection in collections %}
+.leaflet-div-icon-{{collection.id}} {text-align:  center; border: 1px solid #666; background: #{{collection.color}};}
+{% endfor %}
+
+</style>
+
+<title>Map Points</title>
+	
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div id="points" style="display:none">
+{% for point in points %}
+    <div id="point-{{point.id}}">
+    <h4>{{point.name}}</h2>
+    {{point.description|e|nl2br}}
+    <p>
+        <a class='btn btn-default btn-xs' href='point.php?id={{point.id}}' role='button'>Edit</a>
+        <a class='btn btn-default btn-xs' href='point.php?mapid={{point.mapid}}&collectionid=={{point.collectionid}}' role='button'>Add</a>
+    </p>
+    </div>
+{% endfor %}
+</div>
+
+<div id="map">
+
+{% if message is defined and message is not null %}
+
+    <div class="leaflet-top leaflet-left">
+    	    <div class="alert alert-success alert-dismissible leaflet-control">
+    	        {{ message }}
+    	        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    	    </div>
+    </div>
+
+{% endif %}
+
+</div><!-- #map -->
+
+<script type="text/javascript">
+
+var map = new L.Map('map',{zoomControl: false});
+
+new L.Control.Zoom({ position: 'bottomleft' }).addTo(map);
+
+var mbAttr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+var mbUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+//var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', attribution: mbAttr, maxZoom:19}).addTo(map); 
+var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', maxZoom:22}).addTo(map); 
+
+var positron1 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png').addTo(map); 
+
+{% for map in maps %}
+map.addLayer(L.imageOverlay.rotated("{{map.file}}",L.latLng({{map.lat1}}, {{map.lng1}}),L.latLng({{map.lat2}}, {{map.lng2}}),L.latLng({{map.lat3}}, {{map.lng3}})));
+{% endfor %}
+
+var geojsonFeatures = [
+{% for point in points %}
+{
+"type": "Feature",
+"properties": {
+	"name": "{{point.name}}",
+	"popupContent": $("#point-{{point.id}}").html(),
+	"iconClass": "leaflet-div-icon-{{point.collectionid}}"
+},
+"geometry": {
+	"type": "Point",
+	"coordinates": [{{point.lng}}, {{point.lat}}]
+}
+},
+{% endfor %}
+];
+
+var geojsonLayer = L.geoJSON(geojsonFeatures,{
+
+	// style for all vector layers (color, opacity, etc.), either function or object (optional)
+	style: function (feature) {
+		return feature.properties && feature.properties.style;
+	},
+
+	// function for creating layers for GeoJSON point features (optional)
+	pointToLayer: function (feature, latlng) {
+		var text = feature.properties && feature.properties.name;
+		var iconClass = feature.properties && feature.properties.iconClass;
+		var len = text.length;
+		return L.marker(latlng, {
+			//icon: myCustomIcon,
+			icon: L.divIcon({iconSize: new L.Point(len*8, 20), iconAnchor: new L.Point(len*4, 10), html: text, className: iconClass}),
+			title: text
+		});
+	},
+
+	// function that gets called on every created feature layer (optional)
+	onEachFeature: function (feature, layer) {
+		var content = feature.properties && feature.properties.popupContent;
+		if (content) { layer.bindPopup(content); }
+	},
+
+	// function that decides whether to show a feature or not (optional)
+	filter: function (feature, layer) {
+		return !(feature.properties && feature.properties.isHidden);
+	}
+
+}).addTo(map);	
+	
+
+
+map.fitBounds(geojsonLayer.getBounds());
+
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% include 'header-table.html' %}
+
+	<title>Point Collections</title>
+	
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container">
+
+{% if message is defined and message is not null %}
+
+    <div class="alert alert-success alert-dismissible ">
+        {{ message }}
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    </div>
+
+{% endif %}
+
+<h2>Point Collections</h2>
+
+<p class="text-right">
+<a class="btn btn-default" href="collection.php" role="button">New collection</a>
+</p>
+
+<table class="table table-bordered table-striped">
+
+{% for collection in collections %}
+    {% if keys is not defined %}
+        {% set allkeys = collection|keys %}
+        {% set keys = [] %}
+        <tr>
+        {% for key in allkeys %}
+        {% if not (key matches '/^\\d+$/') %}
+            {% set keys = keys|merge([key]) %}
+            <th>{{key|capitalize}}</th>
+        {% endif %}
+        {% endfor %}
+            <th>Actions</th>
+        </tr>
+    {% endif %}
+    <tr>
+    {% for key in keys %}
+        <td>{{collection[key]}}</td>    
+    {% endfor %}
+        <td>
+        <a class="btn btn-default" href="collection.php?id={{ collection.id }}" role="button">Edit</a>
+        {% if collection.points > 0 %}
+        <a class="btn btn-default" href="points.php?collectionid={{ collection.id }}" role="button">View</a>
+        {% endif %}
+        </td>    
+    </tr>
+{% endfor %}
+	
+</table>
+
+</div><!-- container -->
+
+</body>
+</html>

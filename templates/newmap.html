@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% include 'header-map.html' %}
+
+	<title>New Map</title>
+	
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div id="map">
+
+{% if message is defined and message is not null %}
+
+    <div class="leaflet-top leaflet-left">
+    	    <div class="alert alert-success alert-dismissible leaflet-control">
+    	        {{ message }}
+    	        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    	    </div>
+    </div>
+
+{% endif %}
+
+	<div class="leaflet-top leaflet-right">
+		<button type="button" class="btn btn-default leaflet-control" data-toggle="modal" data-target="#myModal">
+			<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> 
+		</button>
+	</div>
+	
+</div><!-- #map -->
+
+	
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">New Map</h4>
+			</div>
+			<div class="modal-body">
+
+<form id="myform" class="form-horizontal" enctype="multipart/form-data" method="POST">
+
+    <!-- MAX_FILE_SIZE must precede the file input field -->
+    <input type="hidden" name="MAX_FILE_SIZE" value="10000000" />
+	<div class="form-group">
+		<label class="col-sm-2 control-label">File</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="file" name="image""/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Level</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="level" value="{{map.level}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Latitude</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lat"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Longitude</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lng"/>
+		</div>
+	</div>
+	
+</form>
+
+
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary" form="myform">Submit</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<script type="text/javascript">
+
+var map = new L.Map('map',{zoomControl: false});
+
+new L.Control.Zoom({ position: 'bottomleft' }).addTo(map);
+
+var mbAttr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+var mbUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+//var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', attribution: mbAttr}).addTo(map); 
+var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets'}).addTo(map); 
+//var positron1 = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(map); 
+var positron1 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png').addTo(map); 
+
+var point1 = L.latLng(41.511567, 14.911825);
+
+map.setView(point1,3);
+
+var marker1 = L.marker(point1, {draggable: true} ).addTo(map);
+
+setImageLatLng(point1);
+map.on('dblclick',function (e) {marker1.setLatLng(e.latlng);});
+marker1.on('move', function(e){setImageLatLng(marker1.getLatLng());});
+
+function setImageLatLng(here) {
+	$("input[name=lat]").val(here.lat);
+	$("input[name=lng]").val(here.lng);
+}
+
+
+</script>
+</body>
+</html>

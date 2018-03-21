@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet debug page</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+<!--	<script src="./node_modules/leaflet/dist/leaflet-src.js"></script>
+	<link rel="stylesheet" href="./node_modules/leaflet/dist/leaflet.css" />-->
+
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet/v1.0.0-rc.1/leaflet.js"></script>
+<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+	
+	<script src="inc/Leaflet.ImageOverlay.Rotated.js"></script>
+	
+</head>
+<body>
+
+	<div id="map" style='width:1000px; height:800px;'></div>
+	<div>
+	Overlay opacity:
+	<button onclick='setOverlayOpacity(0.1)'>10%</button>
+	<button onclick='setOverlayOpacity(0.2)'>20%</button>
+	<button onclick='setOverlayOpacity(0.3)'>30%</button>
+	<button onclick='setOverlayOpacity(0.4)'>40%</button>
+	<button onclick='setOverlayOpacity(0.5)'>50%</button>
+	<button onclick='setOverlayOpacity(0.6)'>60%</button>
+	<button onclick='setOverlayOpacity(0.7)'>70%</button>
+	<button onclick='setOverlayOpacity(0.8)'>80%</button>
+	<button onclick='setOverlayOpacity(0.9)'>90%</button>
+	</div>
+
+
+<form id="mapform" enctype="multipart/form-data" method="POST">
+    Point 1 Lat: <input type="text" name="lat1" />
+    Point 1 Lng: <input type="text" name="lng1" />
+    Point 2 Lat: <input type="text" name="lat2" />
+    Point 2 Lng: <input type="text" name="lng2" />
+    Point 3 Lat: <input type="text" name="lat3" />
+    Point 3 Lng: <input type="text" name="lng3" />
+<input type="submit" value="Go" />
+
+</form>
+
+
+
+	<script type="text/javascript">
+	
+		var map = new L.Map('map');
+
+var mbAttr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+var mbUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+	var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', attribution: mbAttr, maxZoom:19}).addTo(map); 
+	//	var positron1 = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(map); 
+		var positron1 = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png').addTo(map); 
+
+//		var positron = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+//			maxNativeZoom: 18,
+//			maxZoom:24
+//		}).addTo(map);
+
+
+<?PHP
+
+if(array_key_exists('id',$_REQUEST))
+{
+	$id=$_REQUEST['id'];
+	$pdo = new PDO('sqlite:'.getcwd().'/db/wims.sqlite');
+
+	$query = "SELECT name, file, lat1, lat2, lat3, lng1, lng2, lng3 FROM map WHERE id = $id";
+	$map = $pdo->query($query)->fetch();
+	if(is_array($map))
+	{
+		print "
+			var point1 = L.latLng(".$map['lat1'].", ".$map['lng1'].")
+			point2 = L.latLng(".$map['lat2'].", ".$map['lng2']."),
+			point3 = L.latLng(".$map['lat3'].", ".$map['lng3'].");
+
+                var marker1 = L.marker(point1, {draggable: true} ).addTo(map),
+                    marker2 = L.marker(point2, {draggable: true} ).addTo(map),
+                    marker3 = L.marker(point3, {draggable: true} ).addTo(map);
+
+		var	bounds = new L.LatLngBounds(point1, point2).extend(point3);
+
+		map.fitBounds(bounds);
+
+		var overlay = L.imageOverlay.rotated(\"".$map['file']."\", point1, point2, point3, {
+			opacity: 0.4,
+			interactive: true,
+		});
+		
+		function repositionImage() {
+			overlay.reposition(marker1.getLatLng(), marker2.getLatLng(), marker3.getLatLng());
+			$(\"input[name='lat1']\").val(marker1.getLatLng().lat);
+			$(\"input[name='lng1']\").val(marker1.getLatLng().lng);
+			$(\"input[name='lat2']\").val(marker2.getLatLng().lat);
+			$(\"input[name='lng2']\").val(marker2.getLatLng().lng);
+			$(\"input[name='lat3']\").val(marker3.getLatLng().lat);
+			$(\"input[name='lng3']\").val(marker3.getLatLng().lng);
+			
+		};
+
+		repositionImage;
+		
+		marker1.on('drag dragend', repositionImage);
+		marker2.on('drag dragend', repositionImage);
+		marker3.on('drag dragend', repositionImage);
+		
+		map.addLayer(overlay);
+
+		function setOverlayOpacity(opacity) {
+			overlay.setOpacity(opacity);
+		}
+
+		";
+		
+	}
+
+
+
+
+}
+
+
+?>
+    
+		
+		
+	</script>
+</body>
+</html>

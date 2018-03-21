@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% include 'header-map.html' %}
+
+	<title>Edit Map</title>
+	
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div id="map">
+
+{% if message is defined and message is not null %}
+
+    <div class="leaflet-top leaflet-left">
+    	    <div class="alert alert-success alert-dismissible leaflet-control">
+    	        {{ message }}
+    	        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    	    </div>
+    </div>
+
+{% endif %}
+
+
+	<div class="leaflet-top leaflet-right">
+		<div class="btn-group-vertical leaflet-control" role="group" aria-label="opacity">
+            <button type="button" class="btn btn-default" onclick='changeOpacity(0.1)'>
+				<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> 
+			</button>
+			<button type="button" class="btn btn-default disabled">
+				<span class="glyphicon glyphicon-adjust" aria-hidden="true"></span> 
+			</button>
+			<button type="button" class="btn btn-default" onclick='changeOpacity(-0.1)'>
+				<span class="glyphicon glyphicon-minus-sign" aria-hidden="true"></span> 
+			</button>
+		</div>
+		<button type="button" class="btn btn-default leaflet-control" data-toggle="modal" data-target="#myModal">
+			<span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> 
+		</button>
+	</div>
+
+</div><!-- #map -->
+
+{% if map is defined and map is not null %}
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="myModalLabel">Edit Map</h4>
+			</div>
+			<div class="modal-body">
+
+<form id="myform" class="form-horizontal" enctype="multipart/form-data" method="POST">
+	<input type="hidden" name="id" value="{{map.id}}"/>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Name</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="name" value="{{map.name}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Level</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="level" value="{{map.level}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 1 Lat</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lat1" value="{{map.lat1}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 1 Lng</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lng1" value="{{map.lng1}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 2 Lat</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lat2" value="{{map.lat2}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 2 Lng</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lng2" value="{{map.lng2}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 3 Lat</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lat3" value="{{map.lat3}}"/>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">Point 3 Lng</label>
+		<div class="col-sm-10">
+			<input class="form-control" type="text" name="lng3" value="{{map.lng3}}"/>
+		</div>
+	</div>
+</form>
+
+
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary" form="myform">Submit</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+{% endif %}
+
+<script type="text/javascript">
+	
+var map = new L.Map('map',{zoomControl: false});
+
+new L.Control.Zoom({ position: 'bottomleft' }).addTo(map);
+
+var mbAttr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+var mbUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+//var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', attribution: mbAttr, maxZoom:19}).addTo(map); 
+var positron = L.tileLayer(mbUrl, {id: 'mapbox.streets', maxZoom:19}).addTo(map); 
+
+var positron1 = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png').addTo(map); 
+
+{% if map is defined and map is not null %}
+
+var point1 = L.latLng({{map.lat1}}, {{map.lng1}}),
+point2 = L.latLng({{map.lat2}}, {{map.lng2}}),
+point3 = L.latLng({{map.lat3}}, {{map.lng3}});
+
+var marker1 = L.marker(point1, {draggable: true} ).addTo(map),
+    marker2 = L.marker(point2, {draggable: true} ).addTo(map),
+    marker3 = L.marker(point3, {draggable: true} ).addTo(map);
+
+var	bounds = new L.LatLngBounds(point1, point2).extend(point3);
+
+map.fitBounds(bounds);
+
+var ovopacity = 0.4;
+
+var overlay = L.imageOverlay.rotated("{{map.file}}", point1, point2, point3, {
+	opacity: ovopacity,
+//	interactive: true,
+});
+
+function repositionImage() {
+	overlay.reposition(marker1.getLatLng(), marker2.getLatLng(), marker3.getLatLng());
+	$("input[name='lat1']").val(marker1.getLatLng().lat);
+	$("input[name='lng1']").val(marker1.getLatLng().lng);
+	$("input[name='lat2']").val(marker2.getLatLng().lat);
+	$("input[name='lng2']").val(marker2.getLatLng().lng);
+	$("input[name='lat3']").val(marker3.getLatLng().lat);
+	$("input[name='lng3']").val(marker3.getLatLng().lng);
+	
+};
+
+marker1.on('drag dragend', repositionImage);
+marker2.on('drag dragend', repositionImage);
+marker3.on('drag dragend', repositionImage);
+
+map.addLayer(overlay);
+
+function changeOpacity(delta) {
+	ovopacity = ovopacity + delta;
+	if(ovopacity>1){ovopacity=1;}
+	else if(ovopacity<0){ovopacity=0;}
+	overlay.setOpacity(ovopacity);
+}
+
+{% endif %}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% include 'header-table.html' %}
+
+	<title>Maps</title>
+	
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container">
+
+{% if message is defined and message is not null %}
+
+    <div class="alert alert-success alert-dismissible ">
+        {{ message }}
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    </div>
+
+{% endif %}
+
+<h2>Maps</h2>
+
+<p class="text-right">
+<a class="btn btn-default" href="newmap.php" role="button">New Map</a>
+</p>
+
+<table class="table table-bordered table-striped">
+
+{% for map in maps %}
+    {% if keys is not defined %}
+        {% set allkeys = map|keys %}
+        {% set keys = [] %}
+        <tr>
+        {% for key in allkeys %}
+        {% if not (key matches '/^\\d+$/') %}
+            {% set keys = keys|merge([key]) %}
+            <th>{{key|capitalize}}</th>
+        {% endif %}
+        {% endfor %}
+            <th>Actions</th>
+        </tr>
+    {% endif %}
+    <tr>
+    {% for key in keys %}
+        <td>{{map[key]}}</td>    
+    {% endfor %}
+        <td>
+        <a class="btn btn-default" href="editmap.php?id={{ map.id }}" role="button">Edit</a>
+        <a class="btn btn-default" href="point.php?mapid={{ map.id }}" role="button">Add Point</a>
+        {% if map.points > 0 %}
+        <a class="btn btn-default" href="points.php?mapid={{ map.id }}" role="button">View</a>
+        {% endif %}
+        </td>    
+    </tr>
+{% endfor %}
+	
+</table>
+
+</div><!-- container -->
+
+</body>
+</html>
